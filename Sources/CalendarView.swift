@@ -155,8 +155,9 @@ struct CalendarView: View {
                     Text(when).foregroundStyle(.secondary).font(.system(.callout, design: .monospaced))
                     Text(e.title).font(.system(.callout, design: .monospaced)).lineLimit(1)
                 }
-                Text([e.calendarName, e.location].compactMap { $0 }.joined(separator: " · "))
-                    .font(.system(.caption, design: .monospaced)).foregroundStyle(.secondary).lineLimit(1)
+                if let loc = e.location {
+                    Text(loc).font(.system(.caption, design: .monospaced)).foregroundStyle(.secondary).lineLimit(1)
+                }
             }
         }
         .fixedSize(horizontal: false, vertical: true)
