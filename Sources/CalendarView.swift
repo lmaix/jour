@@ -151,13 +151,9 @@ struct CalendarView: View {
         return HStack(alignment: .top, spacing: 8) {
             RoundedRectangle(cornerRadius: 1.5).fill(color(e.colorHex)).frame(width: 3)
             VStack(alignment: .leading, spacing: 2) {
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    Text(when).foregroundStyle(.secondary).font(.system(.callout, design: .monospaced))
-                    Text(e.title).font(.system(.callout, design: .monospaced)).lineLimit(1)
-                }
-                if let loc = e.location {
-                    Text(loc).font(.system(.caption, design: .monospaced)).foregroundStyle(.secondary).lineLimit(1)
-                }
+                Text([when, e.location].compactMap { $0 }.joined(separator: " · "))
+                    .font(.system(.caption, design: .monospaced)).foregroundStyle(.secondary).lineLimit(1)
+                Text(e.title).font(.system(.callout, design: .monospaced)).foregroundStyle(.primary).lineLimit(1)
             }
         }
         .fixedSize(horizontal: false, vertical: true)
