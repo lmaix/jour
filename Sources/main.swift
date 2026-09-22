@@ -64,9 +64,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         guard day != shownDay else { return }
         shownDay = day
         statusItem.button?.image = StatusIcon.image(day: day)
-        if Calendar.current.isDateInToday(model.selectedDay) == false, Calendar.current.isDate(model.selectedDay, inSameDayAs: Calendar.current.date(byAdding: .day, value: -1, to: Date())!) {
-            model.goToday()
-        }
+        model.objectWillChange.send()   // new day: "Aujourd'hui"/"Demain" labels and the upcoming list shift
     }
 
     private func buildMenu() -> NSMenu {
@@ -101,11 +99,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         guard !accounts.isEmpty else { model.status = AuthError.noAccount.message; return }
         lastRefresh = Date()
         model.isLoading = true
-        let range = model.grid.visibleRange
+        let range = model.fetchRange
         api.fetchAll(accounts: accounts, client: client, from: range.start, to: range.end) { [weak self] result in
             guard let self = self else { return }
             self.model.isLoading = false
-            self.model.eventsByDay = EventIndex.byDay(result.events)
+            self.model.events = result.events
             self.model.status = result.errors.isEmpty ? nil : result.errors.joined(separator: "\n")
         }
     }

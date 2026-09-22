@@ -148,7 +148,25 @@ enum EventIndex {
     }
 }
 
+extension EventIndex {
+    /// Next events from `now`: still in progress or starting later, earliest first. Deduplicated by id.
+    static func upcoming(_ events: [CalendarEvent], now: Date = Date(), limit: Int = 5) -> [CalendarEvent] {
+        var seen = Set<String>()
+        return events
+            .filter { $0.end > now && seen.insert($0.id).inserted }
+            .sorted { a, b in a.start != b.start ? a.start < b.start : a.title < b.title }
+            .prefix(limit)
+            .map { $0 }
+    }
+}
+
 enum Fmt {
+    /// "Aujourd'hui", "Demain", else "mer. 23 sept."
+    static func relativeDay(_ d: Date, now: Date = Date(), calendarSystem cal: Calendar = .current, locale: Locale = .current) -> String {
+        if cal.isDate(d, inSameDayAs: now) { return "Aujourd'hui" }
+        if let t = cal.date(byAdding: .day, value: 1, to: now), cal.isDate(d, inSameDayAs: t) { return "Demain" }
+        let f = DateFormatter(); f.locale = locale; f.setLocalizedDateFormatFromTemplate("EEEdMMM"); return f.string(from: d)
+    }
     static func time(_ d: Date) -> String {
         let f = DateFormatter(); f.dateFormat = "HH:mm"; return f.string(from: d)
     }

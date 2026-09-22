@@ -72,5 +72,16 @@ check(GoogleAuth.formEncode("a b/c+d") == "a%20b%2Fc%2Bd", "encodage formulaire"
 check(Data([0xfb, 0xff]).base64URL() == "-_8", "base64url sans padding")
 check(GoogleAuth.randomString(64).count == 64, "verifier PKCE de 64 caractères")
 
+// MARK: Upcoming
+let now22 = date(2026, 9, 22, 12, 0)
+let up = EventIndex.upcoming(evs, now: now22, limit: 5)
+check(up.map(\.id) == ["stephane@gmail.com/a", "stephane@gmail.com/b"], "à venir : en cours ou futur, passé exclu, trié")
+check(EventIndex.upcoming(evs, now: now22, limit: 1).count == 1, "limite respectée")
+check(EventIndex.upcoming(evs + evs, now: now22).count == 2, "doublons (même id) dédupliqués")
+check(EventIndex.upcoming(evs, now: date(2026, 9, 22, 13, 0)).first?.id == "stephane@gmail.com/a", "événement en cours reste listé")
+check(Fmt.relativeDay(date(2026, 9, 22, 18), now: now22, calendarSystem: cal) == "Aujourd'hui", "Aujourd'hui")
+check(Fmt.relativeDay(date(2026, 9, 23), now: now22, calendarSystem: cal) == "Demain", "Demain")
+check(Fmt.relativeDay(date(2026, 9, 25), now: now22, calendarSystem: cal, locale: Locale(identifier: "fr_FR")).contains("25"), "autre jour : date courte")
+
 print(failures == 0 ? "ALL TESTS PASSED" : "\(failures) FAILURE(S)")
 exit(failures == 0 ? 0 : 1)
