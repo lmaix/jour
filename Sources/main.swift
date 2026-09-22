@@ -6,8 +6,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     private var statusItem: NSStatusItem!
     private let popover = NSPopover()
     private let model = CalendarModel()
-    private let auth = GoogleAuth()
-    private lazy var api = GoogleCalendarAPI(auth: auth)
+    private let fetcher = FeedFetcher()
     private var refreshTimer: Timer?
     private var lastRefresh = Date.distantPast
     private var shownDay = 0
@@ -69,23 +68,31 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
 
     private func buildMenu() -> NSMenu {
         let menu = NSMenu()
-        let accounts = GoogleAccount.all()
-        if accounts.isEmpty {
-            menu.addItem(NSMenuItem(title: "Aucun compte Google", action: nil, keyEquivalent: ""))
+        let feeds = FeedStore.load()
+        if feeds.isEmpty {
+            menu.addItem(NSMenuItem(title: "Aucun agenda", action: nil, keyEquivalent: ""))
         }
-        for a in accounts {
-            let item = NSMenuItem(title: "Retirer \(a.email)", action: #selector(removeAccount(_:)), keyEquivalent: "")
-            item.representedObject = a.email
+        for f in feeds {
+            let item = NSMenuItem(title: "Retirer « \(f.name.isEmpty ? f.url : f.name) »", action: #selector(removeFeed(_:)), keyEquivalent: "")
+            item.representedObject = f.url
             item.target = self
+            item.image = swatch(f.colorHex)
             menu.addItem(item)
         }
         menu.addItem(.separator())
-        menu.addItem(withTitle: "Ajouter un compte Google…", action: #selector(addAccount), keyEquivalent: "").target = self
-        menu.addItem(withTitle: "Configurer l'identifiant OAuth…", action: #selector(configureClient), keyEquivalent: "").target = self
+        menu.addItem(withTitle: "Ajouter un agenda iCal…", action: #selector(addFeed), keyEquivalent: "").target = self
         menu.addItem(withTitle: "Actualiser", action: #selector(refreshNow), keyEquivalent: "r").target = self
         menu.addItem(.separator())
         menu.addItem(withTitle: "Quitter", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         return menu
+    }
+
+    private func swatch(_ hex: String) -> NSImage {
+        NSImage(size: NSSize(width: 10, height: 10), flipped: false) { _ in
+            (NSColor(hex: hex) ?? .controlAccentColor).setFill()
+            NSBezierPath(ovalIn: NSRect(x: 0, y: 0, width: 10, height: 10)).fill()
+            return true
+        }
     }
 
     // MARK: - Data
@@ -94,13 +101,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
 
     private func refresh(force: Bool) {
         if !force, Date().timeIntervalSince(lastRefresh) < 30 { return }
-        guard let client = OAuthClient.load() else { model.status = AuthError.noClient.message; return }
-        let accounts = GoogleAccount.all()
-        guard !accounts.isEmpty else { model.status = AuthError.noAccount.message; return }
+        let feeds = FeedStore.load()
+        guard !feeds.isEmpty else { model.status = "Aucun agenda : clic droit → Ajouter un agenda iCal…"; return }
         lastRefresh = Date()
         model.isLoading = true
         let range = model.fetchRange
-        api.fetchAll(accounts: accounts, client: client, from: range.start, to: range.end) { [weak self] result in
+        fetcher.fetch(feeds, from: range.start, to: range.end) { [weak self] result in
             guard let self = self else { return }
             self.model.isLoading = false
             self.model.events = result.events
@@ -108,55 +114,49 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         }
     }
 
-    // MARK: - Accounts
+    // MARK: - Feeds
 
-    @objc private func addAccount() {
-        guard let client = OAuthClient.load() else { configureClient(); return }
-        auth.signIn(client: client) { [weak self] r in
-            switch r {
-            case .success(let account):
-                if !account.save() { self?.alert("Impossible d'enregistrer le compte dans le Trousseau") }
-                self?.refresh(force: true)
-            case .failure(let e):
-                if case .cancelled = e { return }
-                self?.alert(e.message)
-            }
+    @objc private func addFeed() {
+        NSApp.activate(ignoringOtherApps: true)
+        let alert = NSAlert()
+        alert.messageText = "Ajouter un agenda iCal"
+        alert.informativeText = "Google Agenda → Paramètres → l'agenda → « Adresse secrète au format iCal ». Colle l'URL ici (⌘V). Elle est stockée dans ton Trousseau."
+        let box = NSStackView(frame: NSRect(x: 0, y: 0, width: 440, height: 88))
+        box.orientation = .vertical
+        box.alignment = .leading
+        box.spacing = 6
+        let urlField = NSTextField(frame: NSRect(x: 0, y: 0, width: 440, height: 24))
+        urlField.placeholderString = "https://calendar.google.com/calendar/ical/…/basic.ics"
+        let nameField = NSTextField(frame: NSRect(x: 0, y: 0, width: 440, height: 24))
+        nameField.placeholderString = "Nom (facultatif, sinon celui du flux)"
+        let colorPopup = NSPopUpButton(frame: NSRect(x: 0, y: 0, width: 160, height: 24), pullsDown: false)
+        for c in FeedColor.allCases {
+            colorPopup.addItem(withTitle: c.rawValue)
+            colorPopup.lastItem?.image = swatch(c.hex)
         }
-    }
-
-    @objc private func removeAccount(_ sender: NSMenuItem) {
-        guard let email = sender.representedObject as? String else { return }
-        GoogleAccount.remove(email: email)
-        auth.forget(email: email)
+        colorPopup.selectItem(at: FeedStore.load().count % FeedColor.allCases.count)
+        box.addArrangedSubview(urlField); box.addArrangedSubview(nameField); box.addArrangedSubview(colorPopup)
+        urlField.widthAnchor.constraint(equalToConstant: 440).isActive = true
+        nameField.widthAnchor.constraint(equalToConstant: 440).isActive = true
+        alert.accessoryView = box
+        alert.addButton(withTitle: "Ajouter")
+        alert.addButton(withTitle: "Annuler")
+        alert.window.initialFirstResponder = urlField
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        var urlString = urlField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        if urlString.hasPrefix("webcal://") { urlString = "https://" + urlString.dropFirst("webcal://".count) }
+        guard let url = URL(string: urlString), url.scheme?.hasPrefix("http") == true else { self.alert("URL invalide"); return }
+        let color = FeedColor.allCases[max(colorPopup.indexOfSelectedItem, 0)]
+        let feed = Feed(name: nameField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines), url: urlString, colorHex: color.hex)
+        guard FeedStore.add(feed) else { self.alert("Impossible d'enregistrer dans le Trousseau"); return }
         refresh(force: true)
     }
 
-    @objc private func configureClient() {
-        NSApp.activate(ignoringOtherApps: true)
-        let alert = NSAlert()
-        alert.messageText = "Identifiant OAuth Google"
-        alert.informativeText = "Dans Google Cloud Console : API Google Calendar activée, écran de consentement en Production, identifiant OAuth de type « Application de bureau ». Colle ici l'ID client et le secret. Ils sont stockés dans ton Trousseau."
-        let box = NSStackView(frame: NSRect(x: 0, y: 0, width: 420, height: 58))
-        box.orientation = .vertical
-        box.spacing = 6
-        let idField = NSTextField(frame: NSRect(x: 0, y: 0, width: 420, height: 24))
-        idField.placeholderString = "ID client (…apps.googleusercontent.com)"
-        let secretField = NSSecureTextField(frame: NSRect(x: 0, y: 0, width: 420, height: 24))
-        secretField.placeholderString = "Secret client"
-        if let c = OAuthClient.load() { idField.stringValue = c.id; secretField.stringValue = c.secret }
-        box.addArrangedSubview(idField); box.addArrangedSubview(secretField)
-        idField.widthAnchor.constraint(equalToConstant: 420).isActive = true
-        secretField.widthAnchor.constraint(equalToConstant: 420).isActive = true
-        alert.accessoryView = box
-        alert.addButton(withTitle: "Enregistrer")
-        alert.addButton(withTitle: "Annuler")
-        alert.window.initialFirstResponder = idField
-        guard alert.runModal() == .alertFirstButtonReturn else { return }
-        let client = OAuthClient(id: idField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines),
-                                 secret: secretField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines))
-        guard !client.id.isEmpty else { return }
-        if !client.save() { self.alert("Impossible d'enregistrer dans le Trousseau"); return }
-        if GoogleAccount.all().isEmpty { addAccount() } else { refresh(force: true) }
+    @objc private func removeFeed(_ sender: NSMenuItem) {
+        guard let url = sender.representedObject as? String else { return }
+        FeedStore.remove(url: url)
+        if FeedStore.load().isEmpty { model.events = [] }
+        refresh(force: true)
     }
 
     private func alert(_ text: String) {

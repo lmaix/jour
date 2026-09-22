@@ -1,8 +1,8 @@
 # ClaudeCalendarBar
 
 App macOS de barre de menus : une icône calendrier avec le numéro du jour, et
-au clic un popover avec le mois (points sous les jours occupés) et les
-événements du jour sélectionné, tirés de tes agendas Google (plusieurs comptes).
+au clic un popover avec le mois (point sous les jours occupés) et les cinq
+prochains événements, tirés de tes agendas Google via leurs flux iCal.
 Apparence native macOS (couleur d'accentuation, clair/sombre).
 
 ## Installation
@@ -15,33 +15,34 @@ Compile, lance les tests, installe `~/Applications/ClaudeCalendarBar.app`, la
 démarre et l'inscrit au lancement à l'ouverture de session. Aucune dépendance
 en dehors de Xcode.
 
-## Côté Google (une seule fois)
+## Ajouter un agenda
 
-1. [console.cloud.google.com](https://console.cloud.google.com) → crée un projet.
-2. **API et services → Bibliothèque** → active « Google Calendar API ».
-3. **Écran de consentement OAuth** : type Externe, remplis le nom, puis passe
-   l'application **en production** (bouton « Publier »). Sans ça, Google
-   invalide les refresh tokens au bout de 7 jours.
-4. **Identifiants → Créer → ID client OAuth → Application de bureau**. Note
-   l'ID client et le secret.
+1. Google Agenda (web) → Paramètres → dans la colonne de gauche, l'agenda →
+   section « Intégrer l'agenda » → **Adresse secrète au format iCal** → copier.
+2. Clic droit sur l'icône → **Ajouter un agenda iCal…** → colle l'URL, choisis
+   un nom (facultatif) et une couleur.
 
-## Dans l'app
+Répète pour chaque agenda (perso, pro…). Les URL sont des secrets : elles
+donnent accès en lecture à l'agenda et sont stockées dans ton Trousseau.
+Toute autre URL `.ics` / `webcal://` fonctionne aussi.
 
-- Clic droit sur l'icône → **Configurer l'identifiant OAuth…** → colle l'ID et
-  le secret (stockés dans ton Trousseau).
-- **Ajouter un compte Google…** ouvre le navigateur ; connecte-toi, autorise la
-  lecture des agendas. Répète pour le second compte.
-- Clic gauche → le calendrier. ‹ › changent de mois, clic sur le titre du mois
-  revient à aujourd'hui, clic sur un jour affiche ses événements.
+## Utilisation
 
-## Détails
+- Clic gauche : le calendrier. ‹ › changent de mois, clic sur le titre revient
+  à aujourd'hui.
+- Sous la grille : **À venir**, les 5 prochains événements (en cours ou futurs)
+  avec « Aujourd'hui », « Demain » ou la date. Clic sur un jour : ses
+  événements ; « À venir » ou re-clic pour revenir.
+- Clic droit : liste des agendas (Retirer), Ajouter, Actualiser, Quitter.
 
-- Lecture seule (`calendar.readonly`). Tous les agendas cochés dans Google
-  Agenda sont pris en compte ; les événements annulés ou déclinés sont ignorés.
-- Rafraîchissement toutes les 5 min, à l'ouverture du popover (30 s min entre
-  deux) et au changement de mois.
-- OAuth « application de bureau » avec PKCE et redirection locale
-  (`http://127.0.0.1:<port>`). Refresh tokens dans le Trousseau, service
-  `ClaudeCalendarBar`.
-- Couleur de la barre d'un événement : celle de l'agenda Google (ou la couleur
-  propre de l'événement).
+## Limites
+
+- Google met le flux iCal en cache : une modification peut mettre de quelques
+  minutes à quelques heures à apparaître. Rafraîchissement toutes les 5 min,
+  à l'ouverture du popover (30 s min) et au changement de mois.
+- Récurrences développées par l'app : quotidien, hebdo (BYDAY), mensuel
+  (jour du mois, nième jour de semaine), annuel, INTERVAL, COUNT, UNTIL,
+  EXDATE et occurrences modifiées (RECURRENCE-ID). Les règles exotiques
+  (BYSETPOS, BYWEEKNO…) ne sont pas gérées.
+- Événements annulés ignorés ; ceux que tu as déclinés aussi, quand l'URL
+  Google contient ton adresse (cas des agendas principaux).

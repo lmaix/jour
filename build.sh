@@ -7,7 +7,7 @@ BUNDLE_ID="com.stephane.ClaudeCalendarBar"
 TESTS="${TMPDIR:-/tmp}/claudecalendarbar-tests"
 
 echo "▸ Tests"
-swiftc -O -o "$TESTS" Sources/Models.swift Sources/Keychain.swift Sources/GoogleAuth.swift Tests/main.swift
+swiftc -O -o "$TESTS" Sources/Models.swift Sources/ICS.swift Sources/Feeds.swift Tests/main.swift
 "$TESTS"
 
 echo "▸ Compilation"
