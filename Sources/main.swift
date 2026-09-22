@@ -24,7 +24,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
 
         popover.behavior = .transient
         popover.delegate = self
-        popover.contentViewController = NSHostingController(rootView: CalendarView(model: model))
+        let hosting = NSHostingController(rootView: CalendarView(model: model))
+        hosting.sizingOptions = [.preferredContentSize]   // size known before showing, so the popover anchors correctly
+        popover.contentViewController = hosting
         model.onMonthChanged = { [weak self] in self?.refresh(force: true) }
 
         installEditMenu()
@@ -51,8 +53,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         }
         if popover.isShown { popover.performClose(nil); return }
         guard let b = statusItem.button else { return }
-        popover.show(relativeTo: b.bounds, of: b, preferredEdge: .minY)
         NSApp.activate(ignoringOtherApps: true)
+        popover.show(relativeTo: b.bounds, of: b, preferredEdge: .minY)
+        popover.contentViewController?.view.window?.makeKey()
         refresh(force: false)
     }
 
