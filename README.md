@@ -64,3 +64,7 @@ Any other `.ics` / `webcal://` URL works too.
 
 Quit the app (right-click the icon → Quitter), delete
 `~/Applications/Jour.app`, and remove the "Jour" item from your Keychain.
+
+## License
+
+[MIT](LICENSE)
