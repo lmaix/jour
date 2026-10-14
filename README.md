@@ -7,9 +7,7 @@ au clic un popover avec le mois (point sous les jours occupés) et les cinq
 prochains événements, tirés de tes agendas Google via leurs flux iCal.
 Apparence native macOS (couleur d'accentuation, clair/sombre).
 
-<img src="screenshots/popover.png" width="366" alt="Popover">
-
-<img src="screenshots/menubar.png" width="330" alt="Barre de menus">
+<img src="screenshots/popover.png" width="536" alt="Popover">
 
 ## Installation
 
