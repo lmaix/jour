@@ -2,62 +2,65 @@
 
 # Jour
 
-App macOS de barre de menus : une icône calendrier avec le numéro du jour, et
-au clic un popover avec le mois (point sous les jours occupés) et les cinq
-prochains événements, tirés de tes agendas Google via leurs flux iCal.
-Apparence native macOS (couleur d'accentuation, clair/sombre).
+A macOS menu bar app: a calendar icon showing today's date, and on click a
+popover with the month (a dot under busy days) and the next five events,
+pulled from your Google calendars through their iCal feeds. Native macOS
+look (accent color, light/dark).
 
 <img src="screenshots/popover.png" width="536" alt="Popover">
 
-## Installation
+## Install
 
-1. Télécharge **Jour-x.y.zip** depuis la
-   [dernière release](https://github.com/lmaix/jour/releases/latest).
-2. Dézippe-le et glisse **Jour.app** dans ton dossier
-   **Applications**.
+1. Download **Jour-x.y.zip** from the
+   [latest release](https://github.com/lmaix/jour/releases/latest).
+2. Unzip it and drag **Jour.app** to your **Applications** folder.
 
-L'app est signée et notariée : elle se lance sans avertissement de Gatekeeper.
+The app is signed and notarized: it launches without a Gatekeeper warning.
 
-### Compiler depuis les sources
+### Build from source
 
 ```bash
 ./build.sh
 ```
 
-Compile, lance les tests, installe `~/Applications/Jour.app`, la
-démarre et l'inscrit au lancement à l'ouverture de session. Aucune dépendance
-en dehors de Xcode (ou des Command Line Tools, `xcode-select --install`).
-`release.sh` produit le zip universel signé et notarié publié dans les
-releases.
+Runs the tests, compiles `Jour.app`, installs it in `~/Applications`,
+launches it and registers it to start at login. No dependency beyond Xcode
+(or the Command Line Tools, `xcode-select --install`). `release.sh` builds
+the signed, notarized universal zip published in the releases.
 
-## Ajouter un agenda
+## Add a calendar
 
-1. Google Agenda (web) → Paramètres → dans la colonne de gauche, l'agenda →
-   section « Intégrer l'agenda » → **Adresse secrète au format iCal** → copier.
-2. Clic droit sur l'icône → **Ajouter un agenda iCal…** → colle l'URL, choisis
-   un nom (facultatif) et une couleur.
+1. Google Calendar (web) → Settings → your calendar in the left column →
+   "Integrate calendar" section → **Secret address in iCal format** → copy.
+2. Right-click the menu bar icon → **Ajouter un agenda iCal…** → paste the
+   URL, pick a name (optional) and a color.
 
-Répète pour chaque agenda (perso, pro…). Les URL sont des secrets : elles
-donnent accès en lecture à l'agenda et sont stockées dans ton Trousseau.
-Toute autre URL `.ics` / `webcal://` fonctionne aussi.
+Repeat for each calendar (personal, work…). These URLs are secrets: they
+grant read access to the calendar, and they are stored in your Keychain.
+Any other `.ics` / `webcal://` URL works too.
 
-## Utilisation
+## Use
 
-- Clic gauche : le calendrier. ‹ › changent de mois, clic sur le titre revient
-  à aujourd'hui.
-- Sous la grille : **À venir**, les 5 prochains événements (en cours ou futurs)
-  avec « Aujourd'hui », « Demain » ou la date. Clic sur un jour : ses
-  événements ; « À venir » ou re-clic pour revenir.
-- Clic droit : liste des agendas (Retirer), Ajouter, Actualiser, Quitter.
+- Left click: the calendar. ‹ › switch months, clicking the title returns
+  to today.
+- Below the grid: the next 5 events (ongoing or upcoming) with "Aujourd'hui",
+  "Demain" or the date. Click a day to see its events; click it again to go
+  back to the upcoming list.
+- Right click: list of calendars (remove), add, refresh, quit.
 
-## Limites
+## Limitations
 
-- Google met le flux iCal en cache : une modification peut mettre de quelques
-  minutes à quelques heures à apparaître. Rafraîchissement toutes les 5 min,
-  à l'ouverture du popover (30 s min) et au changement de mois.
-- Récurrences développées par l'app : quotidien, hebdo (BYDAY), mensuel
-  (jour du mois, nième jour de semaine), annuel, INTERVAL, COUNT, UNTIL,
-  EXDATE et occurrences modifiées (RECURRENCE-ID). Les règles exotiques
-  (BYSETPOS, BYWEEKNO…) ne sont pas gérées.
-- Événements annulés ignorés ; ceux que tu as déclinés aussi, quand l'URL
-  Google contient ton adresse (cas des agendas principaux).
+- Google caches the iCal feed: a change can take minutes to hours to show
+  up. The app refreshes every 5 minutes, when the popover opens (30 s
+  minimum) and when the month changes.
+- Recurrences expanded by the app: daily, weekly (BYDAY), monthly (day of
+  month, nth weekday), yearly, INTERVAL, COUNT, UNTIL, EXDATE and modified
+  occurrences (RECURRENCE-ID). Exotic rules (BYSETPOS, BYWEEKNO…) are not
+  handled.
+- Cancelled events are ignored; so are events you declined, when the Google
+  URL contains your address (the case for primary calendars).
+
+## Uninstall
+
+Quit the app (right-click the icon → Quitter), delete
+`~/Applications/Jour.app`, and remove the "Jour" item from your Keychain.
