@@ -40,8 +40,7 @@ enum FeedColor: String, CaseIterable {
 
 /// All feeds live in one Keychain item (the URLs are secrets).
 enum FeedStore {
-    // Nom historique de l'app : le changer perdrait les agendas déjà enregistrés dans le Trousseau.
-    static let service = "ClaudeCalendarBar"
+    static let service = "Jour"
     static let account = "feeds"
 
     static func load() -> [Feed] {
