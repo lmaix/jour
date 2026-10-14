@@ -70,20 +70,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         let menu = NSMenu()
         let feeds = FeedStore.load()
         if feeds.isEmpty {
-            menu.addItem(NSMenuItem(title: "Aucun agenda", action: nil, keyEquivalent: ""))
+            menu.addItem(NSMenuItem(title: "No calendars", action: nil, keyEquivalent: ""))
         }
         for f in feeds {
-            let item = NSMenuItem(title: "Retirer « \(f.name.isEmpty ? f.url : f.name) »", action: #selector(removeFeed(_:)), keyEquivalent: "")
+            let item = NSMenuItem(title: "Remove “\(f.name.isEmpty ? f.url : f.name)”", action: #selector(removeFeed(_:)), keyEquivalent: "")
             item.representedObject = f.url
             item.target = self
             item.image = swatch(f.colorHex)
             menu.addItem(item)
         }
         menu.addItem(.separator())
-        menu.addItem(withTitle: "Ajouter un agenda iCal…", action: #selector(addFeed), keyEquivalent: "").target = self
-        menu.addItem(withTitle: "Actualiser", action: #selector(refreshNow), keyEquivalent: "r").target = self
+        menu.addItem(withTitle: "Add an iCal calendar…", action: #selector(addFeed), keyEquivalent: "").target = self
+        menu.addItem(withTitle: "Refresh", action: #selector(refreshNow), keyEquivalent: "r").target = self
         menu.addItem(.separator())
-        menu.addItem(withTitle: "Quitter", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        menu.addItem(withTitle: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         return menu
     }
 
@@ -102,7 +102,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     private func refresh(force: Bool) {
         if !force, Date().timeIntervalSince(lastRefresh) < 30 { return }
         let feeds = FeedStore.load()
-        guard !feeds.isEmpty else { model.status = "Aucun agenda : clic droit → Ajouter un agenda iCal…"; return }
+        guard !feeds.isEmpty else { model.status = "No calendars: right-click → Add an iCal calendar…"; return }
         lastRefresh = Date()
         model.isLoading = true
         let range = model.fetchRange
@@ -119,8 +119,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     @objc private func addFeed() {
         NSApp.activate(ignoringOtherApps: true)
         let alert = NSAlert()
-        alert.messageText = "Ajouter un agenda iCal"
-        alert.informativeText = "Google Agenda → Paramètres → l'agenda → « Adresse secrète au format iCal ». Colle l'URL ici (⌘V). Elle est stockée dans ton Trousseau."
+        alert.messageText = "Add an iCal calendar"
+        alert.informativeText = "Google Calendar → Settings → your calendar → “Secret address in iCal format”. Paste the URL here (⌘V). It is stored in your Keychain."
         let box = NSStackView(frame: NSRect(x: 0, y: 0, width: 440, height: 88))
         box.orientation = .vertical
         box.alignment = .leading
@@ -128,7 +128,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         let urlField = NSTextField(frame: NSRect(x: 0, y: 0, width: 440, height: 24))
         urlField.placeholderString = "https://calendar.google.com/calendar/ical/…/basic.ics"
         let nameField = NSTextField(frame: NSRect(x: 0, y: 0, width: 440, height: 24))
-        nameField.placeholderString = "Nom (facultatif, sinon celui du flux)"
+        nameField.placeholderString = "Name (optional, defaults to the feed’s)"
         let colorPopup = NSPopUpButton(frame: NSRect(x: 0, y: 0, width: 160, height: 24), pullsDown: false)
         for c in FeedColor.allCases {
             colorPopup.addItem(withTitle: c.rawValue)
@@ -139,16 +139,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         urlField.widthAnchor.constraint(equalToConstant: 440).isActive = true
         nameField.widthAnchor.constraint(equalToConstant: 440).isActive = true
         alert.accessoryView = box
-        alert.addButton(withTitle: "Ajouter")
-        alert.addButton(withTitle: "Annuler")
+        alert.addButton(withTitle: "Add")
+        alert.addButton(withTitle: "Cancel")
         alert.window.initialFirstResponder = urlField
         guard alert.runModal() == .alertFirstButtonReturn else { return }
         var urlString = urlField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
         if urlString.hasPrefix("webcal://") { urlString = "https://" + urlString.dropFirst("webcal://".count) }
-        guard let url = URL(string: urlString), url.scheme?.hasPrefix("http") == true else { self.alert("URL invalide"); return }
+        guard let url = URL(string: urlString), url.scheme?.hasPrefix("http") == true else { self.alert("Invalid URL"); return }
         let color = FeedColor.allCases[max(colorPopup.indexOfSelectedItem, 0)]
         let feed = Feed(name: nameField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines), url: urlString, colorHex: color.hex)
-        guard FeedStore.add(feed) else { self.alert("Impossible d'enregistrer dans le Trousseau"); return }
+        guard FeedStore.add(feed) else { self.alert("Could not save to the Keychain"); return }
         refresh(force: true)
     }
 
@@ -167,12 +167,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     /// LSUIElement apps have no main menu, so ⌘V/⌘C/⌘A do nothing in dialogs unless we install an Edit menu.
     private func installEditMenu() {
         let main = NSMenu()
-        let editItem = NSMenuItem(title: "Édition", action: nil, keyEquivalent: "")
-        let edit = NSMenu(title: "Édition")
-        edit.addItem(withTitle: "Couper", action: #selector(NSText.cut(_:)), keyEquivalent: "x")
-        edit.addItem(withTitle: "Copier", action: #selector(NSText.copy(_:)), keyEquivalent: "c")
-        edit.addItem(withTitle: "Coller", action: #selector(NSText.paste(_:)), keyEquivalent: "v")
-        edit.addItem(withTitle: "Tout sélectionner", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
+        let editItem = NSMenuItem(title: "Edit", action: nil, keyEquivalent: "")
+        let edit = NSMenu(title: "Edit")
+        edit.addItem(withTitle: "Cut", action: #selector(NSText.cut(_:)), keyEquivalent: "x")
+        edit.addItem(withTitle: "Copy", action: #selector(NSText.copy(_:)), keyEquivalent: "c")
+        edit.addItem(withTitle: "Paste", action: #selector(NSText.paste(_:)), keyEquivalent: "v")
+        edit.addItem(withTitle: "Select All", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
         editItem.submenu = edit
         main.addItem(editItem)
         NSApp.mainMenu = main

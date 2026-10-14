@@ -80,10 +80,10 @@ enum Fmt {
     static func time(_ d: Date) -> String {
         let f = DateFormatter(); f.dateFormat = "HH:mm"; return f.string(from: d)
     }
-    /// "Aujourd'hui", "Demain", else "mer. 23 sept."
+    /// "Today", "Tomorrow", else "mer. 23 sept."
     static func relativeDay(_ d: Date, now: Date = Date(), calendarSystem cal: Calendar = .current, locale: Locale = .current) -> String {
-        if cal.isDate(d, inSameDayAs: now) { return "Aujourd'hui" }
-        if let t = cal.date(byAdding: .day, value: 1, to: now), cal.isDate(d, inSameDayAs: t) { return "Demain" }
+        if cal.isDate(d, inSameDayAs: now) { return "Today" }
+        if let t = cal.date(byAdding: .day, value: 1, to: now), cal.isDate(d, inSameDayAs: t) { return "Tomorrow" }
         let f = DateFormatter(); f.locale = locale; f.setLocalizedDateFormatFromTemplate("EEEdMMM"); return f.string(from: d)
     }
     /// "mardi 22 septembre"

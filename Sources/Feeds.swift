@@ -21,7 +21,7 @@ struct Feed: Codable, Equatable, Identifiable {
 
 /// Named colors offered in the "add calendar" dialog, mapped to macOS system colors.
 enum FeedColor: String, CaseIterable {
-    case blue = "Bleu", green = "Vert", red = "Rouge", orange = "Orange", yellow = "Jaune", purple = "Violet", pink = "Rose", teal = "Turquoise", gray = "Gris"
+    case blue = "Blue", green = "Green", red = "Red", orange = "Orange", yellow = "Yellow", purple = "Purple", pink = "Pink", teal = "Teal", gray = "Gray"
 
     var hex: String {
         switch self {
@@ -100,7 +100,7 @@ final class FeedFetcher {
         var result = Result()
         let lock = NSLock()
         for feed in feeds {
-            guard let url = URL(string: feed.url) else { result.errors.append("\(feed.name) : URL invalide"); continue }
+            guard let url = URL(string: feed.url) else { result.errors.append("\(feed.name) : invalid URL"); continue }
             group.enter()
             var req = URLRequest(url: url)
             req.timeoutInterval = 30
@@ -109,7 +109,7 @@ final class FeedFetcher {
                 defer { group.leave() }
                 lock.lock(); defer { lock.unlock() }
                 if let err = err { result.errors.append("\(feed.name) : \(err.localizedDescription)"); return }
-                guard let http = resp as? HTTPURLResponse, let data = data else { result.errors.append("\(feed.name) : réponse vide"); return }
+                guard let http = resp as? HTTPURLResponse, let data = data else { result.errors.append("\(feed.name) : empty response"); return }
                 guard (200..<300).contains(http.statusCode) else { result.errors.append("\(feed.name) : HTTP \(http.statusCode)"); return }
                 guard let text = String(data: data, encoding: .utf8) ?? String(data: data, encoding: .isoLatin1) else {
                     result.errors.append("\(feed.name) : encodage illisible"); return

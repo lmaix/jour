@@ -113,10 +113,10 @@ struct CalendarView: View {
 
     private var upcomingList: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("À venir").font(.system(.headline, design: .monospaced))
+            Text("Upcoming").font(.system(.headline, design: .monospaced))
             let items = model.upcoming
             if items.isEmpty {
-                Text("Aucun événement à venir").foregroundStyle(.secondary).font(.system(.callout, design: .monospaced))
+                Text("No upcoming events").foregroundStyle(.secondary).font(.system(.callout, design: .monospaced))
             } else {
                 ForEach(items) { e in eventRow(e, showDay: true) }
             }
@@ -128,12 +128,12 @@ struct CalendarView: View {
             HStack {
                 Text(Fmt.dayTitle(day).capitalized).font(.system(.headline, design: .monospaced))
                 Spacer()
-                Button("À venir") { model.selectedDay = nil }.buttonStyle(.borderless)
+                Button("Upcoming") { model.selectedDay = nil }.buttonStyle(.borderless)
                     .font(.system(.caption, design: .monospaced))
             }
             let items = model.dayEvents(day)
             if items.isEmpty {
-                Text("Aucun événement").foregroundStyle(.secondary).font(.system(.callout, design: .monospaced))
+                Text("No events").foregroundStyle(.secondary).font(.system(.callout, design: .monospaced))
             } else {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 8) {
@@ -146,7 +146,7 @@ struct CalendarView: View {
     }
 
     private func eventRow(_ e: CalendarEvent, showDay: Bool) -> some View {
-        let when = [showDay ? Fmt.relativeDay(e.start) : nil, e.isAllDay ? "Journée" : Fmt.time(e.start)]
+        let when = [showDay ? Fmt.relativeDay(e.start) : nil, e.isAllDay ? "All day" : Fmt.time(e.start)]
             .compactMap { $0 }.joined(separator: " ")
         return HStack(alignment: .top, spacing: 8) {
             RoundedRectangle(cornerRadius: 1.5).fill(color(e.colorHex)).frame(width: 3)

@@ -7,7 +7,7 @@ popover with the month (a dot under busy days) and the next five events,
 pulled from your Google calendars through their iCal feeds. Native macOS
 look (accent color, light/dark).
 
-<img src="screenshots/popover.png" width="536" alt="Popover">
+<img src="screenshots/popover.png" width="442" alt="Popover">
 
 ## Install
 

@@ -127,7 +127,7 @@ let now22 = date(2026, 9, 22, 12, 0)
 let up = EventIndex.upcoming(occ, now: now22, limit: 3)
 check(up.map(\.title) == ["Anniv", "Dej Camille, resto", "Séminaire"], "à venir : journée entière en cours d'abord, puis par heure — \(up.map(\.title))")
 check(EventIndex.upcoming(occ + occ, now: now22).count == EventIndex.upcoming(occ, now: now22).count, "doublons dédupliqués")
-check(Fmt.relativeDay(date(2026, 9, 22, 18), now: now22, calendarSystem: cal) == "Aujourd'hui" && Fmt.relativeDay(date(2026, 9, 23), now: now22, calendarSystem: cal) == "Demain", "Aujourd'hui / Demain")
+check(Fmt.relativeDay(date(2026, 9, 22, 18), now: now22, calendarSystem: cal) == "Today" && Fmt.relativeDay(date(2026, 9, 23), now: now22, calendarSystem: cal) == "Tomorrow", "Today / Tomorrow")
 check(Fmt.weekdaySymbols(locale: Locale(identifier: "fr_FR")).first?.hasPrefix("lun") == true, "semaine commence lundi")
 
 // MARK: Feed helpers
