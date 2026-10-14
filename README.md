@@ -7,13 +7,24 @@ Apparence native macOS (couleur d'accentuation, clair/sombre).
 
 ## Installation
 
+1. Télécharge **ClaudeCalendarBar-x.y.zip** depuis la
+   [dernière release](https://github.com/lmaix/claude-calendar/releases/latest).
+2. Dézippe-le et glisse **ClaudeCalendarBar.app** dans ton dossier
+   **Applications**.
+
+L'app est signée et notariée : elle se lance sans avertissement de Gatekeeper.
+
+### Compiler depuis les sources
+
 ```bash
 ./build.sh
 ```
 
 Compile, lance les tests, installe `~/Applications/ClaudeCalendarBar.app`, la
 démarre et l'inscrit au lancement à l'ouverture de session. Aucune dépendance
-en dehors de Xcode.
+en dehors de Xcode (ou des Command Line Tools, `xcode-select --install`).
+`release.sh` produit le zip universel signé et notarié publié dans les
+releases.
 
 ## Ajouter un agenda
 
