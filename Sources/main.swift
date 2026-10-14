@@ -161,7 +161,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
 
     private func alert(_ text: String) {
         NSApp.activate(ignoringOtherApps: true)
-        let a = NSAlert(); a.messageText = "Claude Calendar"; a.informativeText = text; a.runModal()
+        let a = NSAlert(); a.messageText = "Jour"; a.informativeText = text; a.runModal()
     }
 
     /// LSUIElement apps have no main menu, so ⌘V/⌘C/⌘A do nothing in dialogs unless we install an Edit menu.

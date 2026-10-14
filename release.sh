@@ -1,5 +1,5 @@
 #!/bin/zsh
-# Build a signed, notarized, universal ClaudeCalendarBar.app and zip it for a GitHub release.
+# Build a signed, notarized, universal Jour.app and zip it for a GitHub release.
 #
 #   ./release.sh 1.0
 #
@@ -16,10 +16,10 @@ PROFILE="${NOTARY_PROFILE:-claude-usage-bar}"
 IDENTITY="${SIGN_IDENTITY:-$(security find-identity -v -p codesigning | sed -n 's/.*"\(Developer ID Application: .*\)"/\1/p' | head -1)}"
 [[ -n "$IDENTITY" ]] || { echo "✗ No 'Developer ID Application' certificate in the Keychain (see the header of this script)."; exit 1; }
 
-BUNDLE_ID="com.stephane.ClaudeCalendarBar"
+BUNDLE_ID="com.stephane.Jour"
 OUT="dist"
-APP="$OUT/ClaudeCalendarBar.app"
-ZIP="$OUT/ClaudeCalendarBar-$VERSION.zip"
+APP="$OUT/Jour.app"
+ZIP="$OUT/Jour-$VERSION.zip"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
@@ -30,19 +30,19 @@ swiftc -O -o "$TMP/tests" Sources/Models.swift Sources/ICS.swift Sources/Feeds.s
 echo "▸ Universal build $VERSION"
 rm -rf "$OUT" && mkdir -p "$APP/Contents/MacOS"
 for arch in arm64 x86_64; do
-    swiftc -O -target "$arch-apple-macos13.0" -o "$TMP/ClaudeCalendarBar-$arch" Sources/*.swift
+    swiftc -O -target "$arch-apple-macos13.0" -o "$TMP/Jour-$arch" Sources/*.swift
 done
-lipo -create -output "$APP/Contents/MacOS/ClaudeCalendarBar" "$TMP"/ClaudeCalendarBar-{arm64,x86_64}
+lipo -create -output "$APP/Contents/MacOS/Jour" "$TMP"/Jour-{arm64,x86_64}
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
-  <key>CFBundleName</key><string>ClaudeCalendarBar</string>
-  <key>CFBundleDisplayName</key><string>Claude Calendar</string>
+  <key>CFBundleName</key><string>Jour</string>
+  <key>CFBundleDisplayName</key><string>Jour</string>
   <key>CFBundleIdentifier</key><string>$BUNDLE_ID</string>
   <key>CFBundleVersion</key><string>$(git rev-list --count HEAD)</string>
   <key>CFBundleShortVersionString</key><string>$VERSION</string>
-  <key>CFBundleExecutable</key><string>ClaudeCalendarBar</string>
+  <key>CFBundleExecutable</key><string>Jour</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>LSMinimumSystemVersion</key><string>13.0</string>
   <key>LSUIElement</key><true/>
